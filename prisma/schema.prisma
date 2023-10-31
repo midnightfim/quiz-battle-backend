@@ -1,0 +1,46 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Battle {
+  battle_id    Int            @id @default(autoincrement())
+  uuid         String         @unique @default(uuid())
+  name         String
+  createdAt    DateTime       @default(now()) @map("created_at")
+  endedAt      DateTime       @updatedAt @map("ended_at")
+  users        User[]
+  RatingChange RatingChange[]
+}
+
+model User {
+  userId        String         @id @unique @map("user_id")
+  email         String         @unique
+  firstName     String         @map("first_name")
+  lastName      String         @map("last_name")
+  picture       String
+  rating        Int            @default(1000)
+  createdAt     DateTime       @default(now()) @map("created_at")
+  isBanned      Boolean        @default(false) @map("is_banned")
+  battles       Battle[]
+  rating_change RatingChange[]
+}
+
+model RatingChange {
+  uuid      String   @id @unique @default(uuid())
+  battleId  Int      @map("battle")
+  battle    Battle   @relation(fields: [battleId], references: [battle_id])
+  placement Int
+  change    Int
+  createdAt DateTime @default(now()) @map("created_at")
+  userEmail String   @map("user")
+  user      User     @relation(fields: [userEmail], references: [email])
+}
