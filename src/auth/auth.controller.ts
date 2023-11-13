@@ -23,7 +23,7 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleAuthRedirect(@Req() req, @Res() res: Response) {
-    const token = this.AuthService.googleLogin(req?.user);
+    const token = await this.AuthService.googleLogin(req?.user);
     res.cookie('access_token', token, {
       maxAge: 2592000000,
       sameSite: true,

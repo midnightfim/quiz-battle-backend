@@ -1,36 +1,49 @@
 import { Injectable } from '@nestjs/common';
 import { UserInterface } from '../common/interfaces/user.interface';
-import { BehaviorSubject } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
+import { PrismaService } from '../common/services/prisma/prisma.service';
 
 @Injectable()
 export class UserService {
-  private users: BehaviorSubject<UserInterface[]> = new BehaviorSubject<
-    UserInterface[]
-  >([]);
+  /*  private users: BehaviorSubject<UserInterface[]> = new BehaviorSubject<
+                            UserInterface[]
+                          >([]);*/
+  constructor(private prisma: PrismaService) {}
 
-  getUserByEmail(email: string): UserInterface {
-    return this.users.value.find((user) => user.email === email);
+  async getUserByEmail(email: string): Promise<UserInterface> {
+    return this.prisma.user.findUnique({
+      where: {
+        email: email,
+      },
+    });
   }
 
-  getUserById(id: string): UserInterface {
-    return this.users.value.find((user) => user.id === id);
+  async getUserById(id: string): Promise<UserInterface> {
+    return this.prisma.user.findUnique({
+      where: {
+        userId: id,
+      },
+    });
   }
 
-  setNewUser(user: UserInterface): UserInterface {
-    const users = this.users.value;
+  async setNewUser(user: UserInterface): Promise<UserInterface> {
     user.score = 1000;
     user.id = uuidv4();
 
-    users.push(user);
-    this.users.next(users);
+    const newUser = await this.prisma.user.create({
+      data: {
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        picture: user.picture,
+        rating: user.score,
+        userId: user.id,
+      },
+    });
 
-    console.log(users);
+    // users.push(user);
+    // this.users.next(users);
 
-    return user;
-  }
-
-  verifyToken(token: string): boolean {
-    return !!this.users.value.find((user) => user.accessToken === token);
+    return newUser;
   }
 }

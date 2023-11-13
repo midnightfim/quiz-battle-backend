@@ -15,20 +15,22 @@ export class AuthService {
     return this.jwtService.sign(payload);
   }
 
-  googleLogin(user: UserInterface): string {
+  async googleLogin(user: UserInterface): Promise<string> {
     if (!user) {
       throw new BadRequestException('Unauthenticated');
     }
 
-    let userFromDB: UserInterface = this.userService.getUserByEmail(user.email);
+    const userFromDB: UserInterface = await this.userService.getUserByEmail(
+      user.email,
+    );
 
     if (!userFromDB) {
-      userFromDB = this.userService.setNewUser(user);
+      this.userService.setNewUser(user);
     }
 
     const payload: JwtPayload = {
-      id: userFromDB.id,
-      email: userFromDB.email,
+      id: user.id,
+      email: user.email,
     };
 
     return this.generateJwt(payload);
